@@ -3,7 +3,9 @@ import { supabase } from "./supabase";
 import "./App.css";
 
 function App() {
-  const [activeTab, setActiveTab] = useState("shopping");
+  const [activeTab, setActiveTab] = useState(
+    localStorage.getItem("activeTab") || "shopping",
+  );
   const [items, setItems] = useState([]);
   const [text, setText] = useState("");
   const [urgent, setUrgent] = useState(false);
@@ -76,7 +78,9 @@ function App() {
       supabase.removeChannel(channel);
     };
   }, [activeTab, groupCode]);
-
+  useEffect(() => {
+    localStorage.setItem("activeTab", activeTab);
+  }, [activeTab]);
   async function saveGroupCode() {
     const cleanCode = groupInput.trim().toLowerCase();
     const cleanName = userNameInput.trim();
