@@ -207,6 +207,11 @@ function App() {
 
     if (!confirmDelete) return;
 
+    const oldItems = items;
+
+    // Aktif sekmedeki tamamlananları ekrandan hemen kaldır
+    setItems((prevItems) => prevItems.filter((item) => !item.done));
+
     const { error } = await supabase
       .from("items")
       .delete()
@@ -217,6 +222,9 @@ function App() {
     if (error) {
       console.log("Delete completed error:", error);
       alert("Tamamlananlar silinirken hata oluştu.");
+
+      // Hata olursa geri getir
+      setItems(oldItems);
     }
   }
 
@@ -237,6 +245,10 @@ function App() {
 
     if (!confirmDelete) return;
 
+    // Ekrandan hemen kaldır
+    const oldItems = items;
+    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+
     const { error } = await supabase
       .from("items")
       .delete()
@@ -246,6 +258,9 @@ function App() {
     if (error) {
       console.log("Delete error:", error);
       alert("Kayıt silinirken hata oluştu.");
+
+      // Hata olursa eski listeyi geri getir
+      setItems(oldItems);
     }
     async function editItem(item) {
       const newText = window.prompt("Maddeyi düzenle:", item.text);

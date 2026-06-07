@@ -8,13 +8,14 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       manifest: {
-        name: "Ortak Liste",
-        short_name: "Liste",
+        name: "Aile Paylaşım",
+        short_name: "Aile Paylaşım",
         description: "Ortak alışveriş ve yapılacaklar listesi",
         theme_color: "#111827",
         background_color: "#f4f6f8",
         display: "standalone",
         start_url: "/",
+        scope: "/",
         icons: [
           {
             src: "/icon-192.png",
