@@ -457,19 +457,28 @@ function App() {
               </div>
               <button
                 className="urgent-toggle icon-button"
-                onClick={() => toggleUrgent(item)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleUrgent(item);
+                }}
               >
                 ❗
               </button>
               <button
                 className="edit icon-button"
-                onClick={() => editItem(item)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  editItem(item);
+                }}
               >
                 ✏️
               </button>
               <button
                 className="delete icon-button"
-                onClick={() => deleteItem(item.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteItem(item.id);
+                }}
               >
                 🗑️
               </button>
