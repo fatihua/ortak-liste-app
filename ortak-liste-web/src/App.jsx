@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "./supabase";
 import "./App.css";
 
@@ -7,6 +7,7 @@ function App() {
   const [items, setItems] = useState([]);
   const [text, setText] = useState("");
   const [urgent, setUrgent] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
 
   const [groupCode, setGroupCode] = useState(
     localStorage.getItem("groupCode") || "",
@@ -19,6 +20,7 @@ function App() {
   );
 
   const [userNameInput, setUserNameInput] = useState("");
+  const textareaRef = useRef(null);
 
   async function loadItems() {
     if (!groupCode) return;
@@ -127,7 +129,39 @@ function App() {
     setGroupInput("");
     setItems([]);
   }
+  function changeUserName() {
+    const newName = window.prompt("Yeni kullanıcı adını yaz:", userName);
 
+    if (!newName || !newName.trim()) return;
+
+    const cleanName = newName.trim();
+
+    localStorage.setItem("userName", cleanName);
+    setUserName(cleanName);
+  }
+  async function uploadImage() {
+    if (!imageFile) return null;
+
+    const fileExt = imageFile.name.split(".").pop();
+    const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
+    const filePath = `${groupCode}/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from("item-images")
+      .upload(filePath, imageFile);
+
+    if (error) {
+      console.log("Image upload error:", error);
+      alert("Fotoğraf yüklenirken hata oluştu.");
+      return null;
+    }
+
+    const { data } = supabase.storage
+      .from("item-images")
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  }
   async function addItem() {
     if (!text.trim()) return;
     if (!groupCode) return;
@@ -136,7 +170,7 @@ function App() {
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
-
+    const imageUrl = await uploadImage();
     const itemsToInsert = lines.map((line) => {
       const isUrgentLine = line.startsWith("!");
       const cleanText = isUrgentLine ? line.slice(1).trim() : line;
@@ -147,6 +181,7 @@ function App() {
         created_by: userName,
         group_code: groupCode,
         urgent: urgent || isUrgentLine,
+        image_url: imageUrl,
       };
     });
 
@@ -159,6 +194,11 @@ function App() {
 
     setText("");
     setUrgent(false);
+    setImageFile(null);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.focus();
+    }
   }
   async function deleteCompleted() {
     const confirmDelete = window.confirm(
@@ -193,6 +233,10 @@ function App() {
   }
 
   async function deleteItem(id) {
+    const confirmDelete = window.confirm("Bu kayıt silinsin mi?");
+
+    if (!confirmDelete) return;
+
     const { error } = await supabase
       .from("items")
       .delete()
@@ -201,6 +245,35 @@ function App() {
 
     if (error) {
       console.log("Delete error:", error);
+      alert("Kayıt silinirken hata oluştu.");
+    }
+    async function editItem(item) {
+      const newText = window.prompt("Maddeyi düzenle:", item.text);
+
+      if (!newText || !newText.trim()) return;
+
+      const { error } = await supabase
+        .from("items")
+        .update({ text: newText.trim() })
+        .eq("id", item.id)
+        .eq("group_code", groupCode);
+
+      if (error) {
+        console.log("Edit error:", error);
+        alert("Madde düzenlenirken hata oluştu.");
+      }
+    }
+    async function toggleUrgent(item) {
+      const { error } = await supabase
+        .from("items")
+        .update({ urgent: !item.urgent })
+        .eq("id", item.id)
+        .eq("group_code", groupCode);
+
+      if (error) {
+        console.log("Urgent update error:", error);
+        alert("Acil durumu değiştirilirken hata oluştu.");
+      }
     }
   }
 
@@ -227,7 +300,7 @@ function App() {
             <input
               value={groupInput}
               onChange={(e) => setGroupInput(e.target.value)}
-              placeholder="Örn: fatih-zahide"
+              placeholder="Örn: fatih-müjde"
               onKeyDown={(e) => {
                 if (e.key === "Enter") saveGroupCode();
               }}
@@ -264,6 +337,11 @@ function App() {
             <h1>Ortak Liste</h1>
             <p className="group-label">Kod: {groupCode}</p>
             {userName && <p className="user-label">Kullanıcı: {userName}</p>}
+            {userName && (
+              <button className="mini-button" onClick={changeUserName}>
+                Adı Değiştir
+              </button>
+            )}
           </div>
 
           <button className="change-button" onClick={changeGroupCode}>
@@ -295,6 +373,7 @@ function App() {
 
         <div className="input-section">
           <textarea
+            ref={textareaRef}
             value={text}
             onChange={(e) => {
               setText(e.target.value);
@@ -310,7 +389,18 @@ function App() {
             rows={3}
             style={{ resize: "none" }}
           />
+          <label className="image-option">
+            📷 Fotoğraf seç
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files[0])}
+            />
+          </label>
 
+          {imageFile && (
+            <p className="selected-image">Seçilen fotoğraf: {imageFile.name}</p>
+          )}
           <label className="urgent-option">
             <input
               type="checkbox"
@@ -337,14 +427,31 @@ function App() {
                     {item.text}
                   </span>
                 </div>
-
+                {item.image_url && (
+                  <img
+                    src={item.image_url}
+                    alt={item.text}
+                    className="item-image"
+                  />
+                )}
                 {item.created_by && (
                   <div className="item-meta">
                     {item.created_by} ekledi / {formatDate(item.created_at)}
                   </div>
                 )}
               </div>
-
+              <button
+                className="urgent-toggle icon-button"
+                onClick={() => toggleUrgent(item)}
+              >
+                ❗
+              </button>
+              <button
+                className="edit icon-button"
+                onClick={() => editItem(item)}
+              >
+                ✏️
+              </button>
               <button
                 className="delete icon-button"
                 onClick={() => deleteItem(item.id)}

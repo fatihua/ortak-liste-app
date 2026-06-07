@@ -280,3 +280,84 @@ h1 {
   font-weight: 600;
   cursor: pointer;
 }
+.mini-button {
+  border: 0;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  margin-top: 2px;
+}
+
+.mini-button:hover {
+  color: #111827;
+  text-decoration: underline;
+}
+.tabs button {
+  color: #111827;
+  font-weight: 600;
+}
+
+.tabs button.active {
+  color: #ffffff;
+}
+
+.change-button {
+  color: #111827;
+  font-weight: 600;
+}
+
+.secondary-button {
+  color: #111827;
+  font-weight: 600;
+}
+
+.add-button {
+  color: #ffffff;
+  font-weight: 700;
+}
+.edit {
+  color: #2563eb;
+}
+
+.edit:hover {
+  background: #dbeafe;
+}
+.urgent-toggle {
+  color: #dc2626;
+}
+
+.urgent-toggle:hover {
+  background: #fee2e2;
+}
+.image-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px dashed #9ca3af;
+  border-radius: 12px;
+  padding: 10px;
+  cursor: pointer;
+  color: #374151;
+  font-size: 14px;
+}
+
+.image-option input {
+  display: none;
+}
+
+.selected-image {
+  font-size: 12px;
+  color: #6b7280;
+  margin: -4px 0 4px;
+}
+
+.item-image {
+  width: 100%;
+  max-width: 180px;
+  border-radius: 12px;
+  margin-top: 8px;
+  object-fit: cover;
+}
