@@ -239,7 +239,35 @@ function App() {
       console.log("Update error:", error);
     }
   }
+async function editItem(item) {
+  const newText = window.prompt("Maddeyi düzenle:", item.text);
 
+  if (!newText || !newText.trim()) return;
+
+  const { error } = await supabase
+    .from("items")
+    .update({ text: newText.trim() })
+    .eq("id", item.id)
+    .eq("group_code", groupCode);
+
+  if (error) {
+    console.log("Edit error:", error);
+    alert("Madde düzenlenirken hata oluştu.");
+  }
+}
+
+async function toggleUrgent(item) {
+  const { error } = await supabase
+    .from("items")
+    .update({ urgent: !item.urgent })
+    .eq("id", item.id)
+    .eq("group_code", groupCode);
+
+  if (error) {
+    console.log("Urgent update error:", error);
+    alert("Acil durumu değiştirilirken hata oluştu.");
+  }
+}
   async function deleteItem(id) {
     const confirmDelete = window.confirm("Bu kayıt silinsin mi?");
 
@@ -262,6 +290,7 @@ function App() {
       // Hata olursa eski listeyi geri getir
       setItems(oldItems);
     }
+    
     async function editItem(item) {
       const newText = window.prompt("Maddeyi düzenle:", item.text);
 
